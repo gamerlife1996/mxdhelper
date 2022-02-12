@@ -5,7 +5,6 @@ import pyautogui
 import time
 import json
 import sys
-import pytesseract
 import os
 import re
 
@@ -33,8 +32,6 @@ goods_top = 288
 goods_bottom = 488
 goods_left = 465
 goods_width = 160
-
-custom_config = r'-l chi_sim --psm 7'
 
 class ShopHelper:
     
@@ -75,7 +72,7 @@ class ShopHelper:
         black_mask = ~cv2.inRange(detail_scr, lower_black, upper_black)
         detail_scr = cv2.bitwise_and(detail_scr, detail_scr, mask=black_mask)
 
-        cv2.imwrite(self.path + '/' + str(self.index)+"_detail.png", detail_scr)
+        cv2.imwrite(self.path + '/' + str(self.index)+"_detail.jpg", detail_scr, [int(cv2.IMWRITE_JPEG_QUALITY), 75])
 
     def SaveGoods(self, good_list, start=0):
         for index in range(0, 5-start):
@@ -86,7 +83,7 @@ class ShopHelper:
             
             icon = crop[:,:38]
             mean = cv2.mean(icon)
-            if mean[0] > 214 and mean[0] < 216 and mean[1] > 221 and mean[1] < 224 and mean[2] > 222 and mean[2] < 225:
+            if mean[0] > 213.9 and mean[0] < 216 and mean[1] > 221 and mean[1] < 224 and mean[2] > 222 and mean[2] < 225:
                 # empty
                 return
 
@@ -136,22 +133,29 @@ class ShopHelper:
 
         pyautogui.click(window_rect[0]+100, window_rect[1]+100)
 
-        json_shop = {}
-        json_shop['index'] = self.shopIndex
-        good_list = []
-
         self.GrabScreen()
 
-        # shop title
-        cv2.imwrite(self.path + '/shop_' + str(self.shopIndex)+".png", self.scr[140:140+20, 440:440+400])
+        shop_title = self.scr[140:140+20, 440:440+400]
 
-        self.shopIndex = self.shopIndex + 1
+        good_list = []
 
         self.SaveGoods(good_list)
         if self.IsMatch(slider_top_img):
             count = self.ScrollToEnd()
             self.GrabScreen()
             self.SaveGoods(good_list, 5-count)
+
+        if len(good_list) == 0:
+            pyautogui.click(window_rect[0]+603, window_rect[1]+256)
+            return
+
+        # shop title
+        cv2.imwrite(self.path + '/shop_' + str(self.shopIndex)+".png", shop_title)
+
+        json_shop = {}
+        json_shop['index'] = self.shopIndex
+
+        self.shopIndex = self.shopIndex + 1
 
         json_shop['goods'] = good_list
 

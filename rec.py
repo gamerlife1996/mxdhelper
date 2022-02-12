@@ -140,15 +140,11 @@ class ShopHelper:
                     json_good['name'] = self.RecognizeText(good[0:20, 40:])
                     print(json_good['name'])
 
-                    json_good['price'] = self.RecognizeText(good[20:, 40:])
-                    print(json_good['price'])
+                    # json_good['price'] = self.RecognizeText(good[20:, 40:])
+                    # print(json_good['price'])
 
                     cv2.imwrite(good_path + '.jpg', good, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
                     os.remove(good_path + '.png')
-
-                    detail = cv2.imread(good_path + '_detail.png')
-                    cv2.imwrite(good_path + '_detail.jpg', detail, [int(cv2.IMWRITE_JPEG_QUALITY), 75])
-                    os.remove(good_path + '_detail.png')
 
         json_text = json.dumps(json_all_maps, indent=4, ensure_ascii=False, separators=(',', ': '))
 
@@ -156,62 +152,8 @@ class ShopHelper:
             f.write(json_text)
 
 
-        return
-
-
-        dirs = os.listdir(self.path)
-        for dir in dirs:
-            if dir == 'data.json':
-                continue
-            print(dir)
-            pics = os.listdir(self.path + '/' + dir)
-            for pic in pics:
-                if pic.endswith('_detail.png'):
-                    continue
-                elif pic.startswith('shop_'):
-                    continue
-                else:
-                    good = cv2.imread(self.path + '/' + dir + '/' + pic)
-                    name = self.RecognizeText(good[0:20, 40:])
-                    price = self.RecognizeText(good[20:, 40:])
-        return
-
-        json_all_maps = {}
-        if len(sys.argv) == 3 and sys.argv[2] == '-c':
-            if os.path.exists('data.json'):
-                os.remove('data.json')
-            json_all_maps["maps"] = []
-            json_all_maps["starttime"] = time.time()
-        else:
-            if not os.path.exists('data.json'):
-                print("no json file, please add '-c' to create one!")
-                return
-            with open("data.json", mode='r', encoding='utf-8') as f:
-                json_all_maps = json.loads(f.read())
-
-        self.GrabScreen()
-
-        self.json_map = {}
-        self.json_map['map'] = self.path
-        self.json_map['time'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-
-        self.json_map['shops'] = []
-
-        self.index = 0
-
-        self.DoShops(shop_fairy_img)
-        self.DoShops(shop_bear_img)
-        self.DoShops(shop_maid_img)
-        self.DoShops(shop_robot_img)
-
-        json_all_maps["maps"].append(self.json_map)
-
-        json_text = json.dumps(json_all_maps, indent=4, ensure_ascii=False, separators=(',', ': '))
-
-        with open('data.json', mode='w', encoding='utf-8') as f:
-            f.write(json_text)
-
         print("Done")
+        return
 
 
 sh = ShopHelper()
