@@ -1,110 +1,23 @@
 import cv2
-import numpy
-import mss
-import pyautogui
 import time
 import json
 import sys
 import pytesseract
 import os
-import re
+from tesserocr import PyTessBaseAPI, RIL, iterate_level, PSM
+from PIL import Image
 
-custom_config = r'-l chi_sim --psm 7'
+api = PyTessBaseAPI(lang='chi_sim', psm=PSM.SINGLE_LINE)
 
 class ShopHelper:
     
     def RecognizeText(self, crop):
         enlarge = cv2.resize(crop, None, fx=2, fy=2, interpolation=cv2.INTER_NEAREST)
         threshold = cv2.threshold(enlarge, 128, 255, cv2.THRESH_BINARY)[1]
-        text = pytesseract.image_to_string(threshold, config=custom_config)
+        api.SetImage(Image.fromarray(threshold))
+        text = api.GetUTF8Text()
         text = text.replace(' ','').replace('\n','').replace('','')
-        # cv2.imshow("crop", crop)
-        # cv2.imshow("thresh", threshold)
-        # cv2.waitKey(0)
         return text
-
-
-    def RecognizeTextEx(self, _left, _top, _width, name):
-        crop = self.scr[_top:_top+20, _left:_left+_width]
-        enlarge = cv2.resize(crop, None, fx=2, fy=2, interpolation=cv2.INTER_NEAREST)
-        threshold = cv2.threshold(enlarge, 210, 255, cv2.THRESH_BINARY_INV)[1]
-        text = pytesseract.image_to_string(threshold, config=custom_config)
-        text = text.replace(' ','').replace('\n','').replace('','')
-        if len(text)>0:
-            # cv2.imwrite(name+".jpg", threshold)
-            print(text)
-        return text
-
-
-    def ReadGoods(self, good_list, start=0):
-        crop = self.scr[goods_top+start*40:goods_bottom, goods_left:goods_left+goods_width]
-        enlarge = cv2.resize(crop, None, fx=2, fy=2, interpolation=cv2.INTER_NEAREST)
-        threshold = cv2.threshold(enlarge, 128, 255, cv2.THRESH_BINARY)[1]
-        text = pytesseract.image_to_string(threshold, config=r'-l chi_sim --psm 6')
-        text = text.replace(' ','').replace('','')
-        lines_raw = text.split('\n')
-        lines = []
-        for line in lines_raw:
-            if len(line) > 0:
-                lines.append(line)
-        
-        for index in range(0, int(len(lines)/2)):
-            self.index = self.index + 1
-            item_top = goods_top + (index + start) * 40
-            available = self.IsAvailable(item_top)
-            crop = self.scr[item_top:item_top+40, goods_left-38:goods_left+goods_width]
-            cv2.imwrite(self.path + '/' + str(self.index)+".jpg", crop, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
-            
-            self.CaptureItemDetail(item_top)
-
-            json_good = {'index':self.index, 'name':lines[2*index], 'price':lines[2*index+1], 'available':available}
-            good_list.append(json_good)
-
-
-    def ClickShop(self, x, y):
-        shop_title = self.RecognizeText(440, 142, 400, "title")
-
-        json_shop = {}
-        json_shop['title'] = shop_title
-        good_list = []
-
-        self.ReadGoods(good_list)
-        if self.IsMatch(slider_top_img):
-            count = self.ScrollToEnd()
-            self.ReadGoods(good_list, 5-count)
-
-        json_shop['goods'] = good_list
-        return json_shop
-
-
-    def GetShops(self, img):
-        result = cv2.matchTemplate(self.scr, img, cv2.TM_CCOEFF_NORMED)
-
-        w = img.shape[1]
-        h = img.shape[0]
-
-        threshold = .60
-        yloc, xloc = numpy.where(result >= threshold)
-
-        rectangles = []
-        for (x, y) in zip(xloc, yloc):
-            rectangles.append([int(x), int(y), int(w), int(h)])
-            rectangles.append([int(x), int(y), int(w), int(h)])
-
-        rectangles, weights = cv2.groupRectangles(rectangles, 1, 0.2)
-        return rectangles
-
-
-    def DoShops(self, img):
-        rects = self.GetShops(img)
-        for rect in rects:
-            time_start = time.perf_counter()
-            shop_json = self.ClickShop(window_rect[0]+rect[0]+30, window_rect[1]+rect[1]-20)
-            time_end = time.perf_counter()
-            print("time",time_end-time_start)
-            if shop_json != None:
-                self.json_map['shops'].append(shop_json)
-            time.sleep(0.1)
 
 
     def CaptureAllShops(self):
@@ -157,7 +70,11 @@ class ShopHelper:
 
 
 sh = ShopHelper()
+
 time_start = time.perf_counter()
 sh.CaptureAllShops()
 time_end = time.perf_counter()
+
 print("time",time_end-time_start)
+
+api.End()
