@@ -91,23 +91,26 @@ def DoMapSecondFloor(path):
     DoKey(keycode.up)
     time.sleep(2)
 
-    # jump right
-    JumpFar(0.2)
-    PressKey(keycode.up)
-    time.sleep(1.5)
-    ReleaseKey(keycode.up)
-    time.sleep(2)
+    shopCount = sh.GetFairyShopCount()
+    if shopCount > 5:
+        # jump right
+        JumpFar(0.2)
+        PressKey(keycode.up)
+        time.sleep(1.5)
+        ReleaseKey(keycode.up)
+        time.sleep(2)
 
     # capture
     sh.Start(path)
     time.sleep(0.1)
 
-    # jump left
-    PressKey(keycode.left)
-    time.sleep(0.1)
-    DoKey(keycode.alt)
-    time.sleep(1.3)
-    ReleaseKey(keycode.left)
+    if shopCount > 5:
+        # jump left
+        PressKey(keycode.left)
+        time.sleep(0.1)
+        DoKey(keycode.alt)
+        time.sleep(1.3)
+        ReleaseKey(keycode.left)
 
     # exit map
     DoKey(keycode.up)
@@ -129,37 +132,41 @@ def DoMapThirdFloor(path):
     DoKey(keycode.up)
     time.sleep(2)
 
-    # jump right
-    JumpFar()
-    JumpFar()
-    JumpFar()
-    JumpFar(0.2)
-    PressKey(keycode.up)
-    time.sleep(1.8)
-    ReleaseKey(keycode.up)
-    time.sleep(2)
+    shopCount = sh.GetFairyShopCount()
+    if shopCount > 5:
+        # jump right
+        JumpFar()
+        JumpFar()
+        JumpFar()
+        JumpFar(0.2)
+        PressKey(keycode.up)
+        time.sleep(1.8)
+        ReleaseKey(keycode.up)
+        time.sleep(2)
 
     # capture
     sh.Start(path)
     time.sleep(0.1)
 
-    # jump left
-    DoKey(keycode.left)
-    time.sleep(0.1)
-    JumpFar()
-    JumpFar()
-    JumpFar()
-    DoKey(keycode.left, 0.8)
+    if shopCount > 5:
+        # jump left
+        DoKey(keycode.left)
+        time.sleep(0.1)
+        JumpFar()
+        JumpFar()
+        JumpFar()
+        DoKey(keycode.left, 0.8)
 
-    time.sleep(1)
-    sh.Click(30, 430)
-    time.sleep(0.1)
-    if (sh.IsInShop()):
-        sh.Start(path)
+        time.sleep(1)
+        sh.Click(30, 430)
+        time.sleep(0.1)
+        if (sh.IsInShop()):
+            sh.Start(path)
 
     # exit map
     DoKey(keycode.up)
     time.sleep(3)
+
 
 def ThirdFloor(channel):
     DoMapThirdFloor(str(channel) + '-18')
@@ -173,16 +180,49 @@ def ThirdFloor(channel):
     DoMapThirdFloor(str(channel) + '-22')
 
 
+def FirstToSecond():
+    DoKey(keycode.left)
+    time.sleep(0.1)
+    JumpFar()
+    JumpFar()
+    JumpFar()
+    DoKey(keycode.left, 0.1)
+
+    DoKey(keycode.up)
+    time.sleep(0.8)
+    DoKey(keycode.up)
+    time.sleep(0.3)
+    DoKey(keycode.right, 0.7)
+
+
+def SecondToThird():
+    DoKey(keycode.left)
+    time.sleep(0.1)
+    JumpFar()
+    JumpFar()
+    DoKey(keycode.left, 1.1)
+
+    DoKey(keycode.up)
+    time.sleep(0.3)
+    DoKey(keycode.right, 0.7)
+
+
 def KeyPress():
     SetFocus(hwnd)
 
     # FirstFloor(channel=1)
+    # FirstToSecond()
     # SecondFloor(channel=1)
+    # SecondToThird()
     # ThirdFloor(channel=1)
+
     # FirstFloor(channel=2)
+
     # FirstFloor(channel=3)
-    # DoMapFirstFloor('4-1')
-    DoMapFirstFloor('6-1')
+
+    # FirstFloor(channel=4)
+
+    FirstFloor(channel=6)
 
 
 KeyPress()

@@ -2,15 +2,51 @@ import cv2
 import time
 import json
 import sys
-import pytesseract
 import os
 from tesserocr import PyTessBaseAPI, RIL, iterate_level, PSM
 from PIL import Image
+import shutil
 
-api = PyTessBaseAPI(lang='chi_sim', psm=PSM.SINGLE_LINE)
+# api = PyTessBaseAPI(lang='chi_sim', psm=PSM.SINGLE_LINE)
 
 class ShopHelper:
+
+    def MoveFiles(self):
+        with open('data.json', mode='r', encoding='utf-8') as f:
+            json_all_maps = json.loads(f.read())
+
+        dest = str(json_all_maps['starttime'])
+        os.makedirs(dest)
+
+        for json_map in json_all_maps['maps']:
+            shutil.move(json_map['map'], dest)
+
+        shutil.move('data.json', dest)
+        self.path = dest
+
+
+    def MoveFilesAfterFinish(self):
+        # delete old data
+        dirs = os.listdir('E:\gamerlife1996.github.io\public')
+        for dir in dirs:
+            dirpath = 'E:\gamerlife1996.github.io\public\\' + dir
+            if os.path.isdir(dirpath):
+                shutil.rmtree(dirpath)
+
+        # copy new data
+        shutil.copytree(self.path, 'E:\gamerlife1996.github.io\public\\'+self.path)
+
+        # move data to old_data folder
+        shutil.move(self.path, 'old_data')
+
+        # move json file
+        shutil.move('E:\gamerlife1996.github.io\public\\'+self.path+'\data.json', 'E:\gamerlife1996.github.io\src\\views\data.json')
+
+        # starts building
+        os.chdir('E:\gamerlife1996.github.io\\')
+        os.system('build.bat')
     
+
     def RecognizeText(self, crop):
         enlarge = cv2.resize(crop, None, fx=2, fy=2, interpolation=cv2.INTER_NEAREST)
         threshold = cv2.threshold(enlarge, 128, 255, cv2.THRESH_BINARY)[1]
@@ -20,21 +56,7 @@ class ShopHelper:
         return text
 
 
-    def CaptureAllShops(self):
-        if len(sys.argv) < 2:
-            print('please enter folder name.')
-            return
-        else:
-            self.path = sys.argv[1]
-
-        if not os.path.exists(self.path):
-            print('folder' + self.path + ' not exist.')
-            return
-
-        
-        if not os.path.exists(self.path + '/data.json'):
-            print("no json file.")
-            return
+    def RecognizeAllShop(self):
         with open(self.path + '/data.json', mode='r', encoding='utf-8') as f:
             json_all_maps = json.loads(f.read())
 
@@ -69,12 +91,16 @@ class ShopHelper:
         return
 
 
+
 sh = ShopHelper()
+sh.path = '1645719060'
+sh.MoveFilesAfterFinish()
+# sh.MoveFiles()
 
-time_start = time.perf_counter()
-sh.CaptureAllShops()
-time_end = time.perf_counter()
+# time_start = time.perf_counter()
+# sh.RecognizeAllShop()
+# time_end = time.perf_counter()
 
-print("time",time_end-time_start)
+# print("time",time_end-time_start)
 
-api.End()
+# api.End()
