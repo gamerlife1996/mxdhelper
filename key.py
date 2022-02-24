@@ -1,5 +1,4 @@
-import ctypes, time
-import win32gui
+import ctypes
 # Bunch of stuff so that the script can send keystrokes to game #
 
 SendInput = ctypes.windll.user32.SendInput
@@ -50,32 +49,8 @@ def ReleaseKey(hexKeyCode):
     ii_.ki = KeyBdInput( 0, hexKeyCode, 0x0008 | 0x0002, 0, ctypes.pointer(extra) )
     x = Input( ctypes.c_ulong(1), ii_ )
     ctypes.windll.user32.SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
-
-hwnd = win32gui.FindWindow("MapleStoryClass", None)
+    
 def SetFocus(hwnd):
     ctypes.windll.user32.BringWindowToTop(hwnd)
     ctypes.windll.user32.SetForegroundWindow(hwnd)
     ctypes.windll.user32.SetFocus(hwnd)
-
-windows = []
-
-def window_enumeration_handler(hwnd, windows):
-    if 'MapleStoryClass' == win32gui.GetClassName(hwnd):
-        windows.append(hwnd)
-
-win32gui.EnumWindows(window_enumeration_handler, windows)
-
-def KeyPress():
-    time.sleep(3)
-    
-    while True:
-
-        for hwnd in windows:
-            SetFocus(hwnd)
-            PressKey(0x2A) # press shift
-            time.sleep(.01)
-            ReleaseKey(0x2A) #release shift
-
-        time.sleep(0.5)
-
-KeyPress()

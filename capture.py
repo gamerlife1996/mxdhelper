@@ -115,6 +115,18 @@ class ShopHelper:
                 break
         return count
 
+    def Click(self, x, y):
+        pyautogui.moveTo(window_rect[0]+x, window_rect[1]+y)
+        pyautogui.doubleClick()
+
+    def IsInShop(self):
+        self.GrabScreen()
+        return self.IsMatch(inshop_img)
+
+    def GetFairyShopCount(self):
+        self.GrabScreen()
+        rects = self.GetShops(shop_fairy_img)
+        return len(rects)
 
     def ClickShop(self, x, y):
         pyautogui.moveTo(x, y)
@@ -188,7 +200,7 @@ class ShopHelper:
         print('found ' + str(len(rects)) + ' ' + name + ' shops.')
         for rect in rects:
             time_start = time.perf_counter()
-            shop_json = self.ClickShop(window_rect[0]+rect[0]+30, window_rect[1]+rect[1]-20)
+            shop_json = self.ClickShop(window_rect[0]+rect[0]+30, window_rect[1]+rect[1]-30)
             time_end = time.perf_counter()
             print("time",time_end-time_start)
             if shop_json != None:
@@ -197,28 +209,6 @@ class ShopHelper:
 
 
     def CaptureAllShops(self):
-        if len(sys.argv) < 2:
-            print('folder name is empty, default is test.')
-            self.path = 'test'
-        else:
-            self.path = sys.argv[1]
-
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
-
-        json_all_maps = {}
-        if len(sys.argv) == 3 and sys.argv[2] == '-c':
-            if os.path.exists('data.json'):
-                os.remove('data.json')
-            json_all_maps["maps"] = []
-            json_all_maps["starttime"] = int(time.time())
-        else:
-            if not os.path.exists('data.json'):
-                print("no json file, please add '-c' to create one!")
-                return
-            with open("data.json", mode='r', encoding='utf-8') as f:
-                json_all_maps = json.loads(f.read())
-
         self.GrabScreen()
 
         self.json_map = {}
@@ -235,42 +225,11 @@ class ShopHelper:
         self.DoShops(shop_maid_img, 'maid')
         self.DoShops(shop_robot_img, 'robot')
 
-        json_all_maps["maps"].append(self.json_map)
-
-        json_text = json.dumps(json_all_maps, indent=4, ensure_ascii=False, separators=(',', ': '))
-
-        with open('data.json', mode='w', encoding='utf-8') as f:
-            f.write(json_text)
-
-        print("Done")
+        self.json_all_maps["maps"].append(self.json_map)
         
 
-    def AppendShop(self, path):
-
-        self.path = path
-
-        if not os.path.exists(self.path):
-            print('folder not created.')
-            return
-
-        if not os.path.exists('data.json'):
-            print("no json file, please add '-c' to create one!")
-            return
-            
-        json_all_maps = {}
-        with open("data.json", mode='r', encoding='utf-8') as f:
-            json_all_maps = json.loads(f.read())
-
-        for json_map in json_all_maps['maps']:
-            if json_map['map'] == path:
-                this_json_map = json_map
-                print('found map')
-
-        if this_json_map == None:
-            print("cannot find map!")
-            return
-
-        lastShopInMap = this_json_map['shops'][-1]
+    def AppendShop(self):
+        lastShopInMap = self.this_json_map['shops'][-1]
 
         self.shopIndex = lastShopInMap['index'] + 1
         self.index = lastShopInMap['goods'][-1]['index']
@@ -294,24 +253,51 @@ class ShopHelper:
         json_shop['index'] = self.shopIndex
         json_shop['goods'] = good_list
 
-        this_json_map['shops'].append(json_shop)
+        self.this_json_map['shops'].append(json_shop)
 
         # close shop
         pyautogui.click(window_rect[0]+603, window_rect[1]+256)
 
-        json_text = json.dumps(json_all_maps, indent=4, ensure_ascii=False, separators=(',', ': '))
+
+    def Start(self, path):
+        print("path="+path)
+        self.path = path
+
+        if self.GetFairyShopCount() == 0:
+            print("no shop")
+            return
+
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        self.json_all_maps = {}
+        if not os.path.exists('data.json'):
+            self.json_all_maps["maps"] = []
+            self.json_all_maps["starttime"] = int(time.time())
+        else:
+            with open("data.json", mode='r', encoding='utf-8') as f:
+                self.json_all_maps = json.loads(f.read())
+
+        isExist = False
+        for json_map in self.json_all_maps['maps']:
+            if json_map['map'] == path:
+                self.this_json_map = json_map
+                isExist = True
+                print('found map')
+
+        time_start = time.perf_counter()
+
+        if isExist:
+            self.AppendShop()
+        else:
+            self.CaptureAllShops()
+
+        time_end = time.perf_counter()
+        print("time",time_end-time_start)
+
+        json_text = json.dumps(self.json_all_maps, indent=4, ensure_ascii=False, separators=(',', ': '))
 
         with open('data.json', mode='w', encoding='utf-8') as f:
             f.write(json_text)
 
         print("Done")
-
-
-sh = ShopHelper()
-if len(sys.argv) == 3 and sys.argv[2] == '-a':
-    sh.AppendShop(sys.argv[1])
-else:
-    time_start = time.perf_counter()
-    sh.CaptureAllShops()
-    time_end = time.perf_counter()
-    print("time",time_end-time_start)
