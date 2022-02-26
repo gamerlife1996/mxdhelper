@@ -210,7 +210,7 @@ def SecondToThird():
 def KeyPress(channel):
     SetFocus(hwnd)
 
-    if channel == 1:
+    if str(channel) == "1":
         FirstFloor(channel)
         FirstToSecond()
         SecondFloor(channel)
