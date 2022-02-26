@@ -25,27 +25,25 @@ class ShopHelper:
 
     def CaptureAllShops(self):
     
-        self.path = sys.argv[1]
+        all_names = []
 
-        with open(self.path + '/data.json', mode='r', encoding='utf-8') as f:
+        with open('data.json', mode='r', encoding='utf-8') as f:
             json_all_maps = json.loads(f.read())
 
         for json_map in json_all_maps['maps']:
-            print(json_map['map'])
+            # print(json_map['map'])
+
             for json_shop in json_map['shops']:
-                shop = cv2.imread(self.path + '/' + json_map['map'] + '/shop_' + str(json_shop['index']) + '.png')
-                json_shop['title'] = self.RecognizeText(shop)
-                print(json_shop['title'])
-
                 for json_good in json_shop['goods']:
-                    good_path = self.path + '/' + json_map['map'] + '/' + str(json_good['index'])
-                    good = cv2.imread(good_path + '.png')
+                    # print(json_good['name'])
+                    if json_good['name'] not in all_names:
+                        all_names.append(json_good['name'])
 
-                    json_good['name'] = self.RecognizeText(good[0:20, 40:])
-                    print(json_good['name'])
+        # all_name_text = '\n'.join(all_names)
+        # with open('correction.txt', mode='w', encoding='utf-8') as f:
+        #     f.write(all_name_text)
+        # print(len(all_name_text))
 
-                    # json_good['price'] = self.RecognizeText(good[20:, 40:])
-                    # print(json_good['price'])
 
 sh = ShopHelper()
 

@@ -7,7 +7,7 @@ from tesserocr import PyTessBaseAPI, RIL, iterate_level, PSM
 from PIL import Image
 import shutil
 
-# api = PyTessBaseAPI(lang='chi_sim', psm=PSM.SINGLE_LINE)
+api = PyTessBaseAPI(lang='chi_sim', psm=PSM.SINGLE_LINE)
 
 class ShopHelper:
 
@@ -57,6 +57,18 @@ class ShopHelper:
 
 
     def RecognizeAllShop(self):
+
+        # load corrected names data
+        text_correct = {}
+        with open('original.txt', mode='r', encoding='utf-8') as f:
+            origin_array = f.read().split('\n')
+        with open('correction.txt', mode='r', encoding='utf-8') as f:
+            correct_array = f.read().split('\n')
+        for i in range(len(origin_array)):
+            text_correct[origin_array[i]] = correct_array[i]
+
+        not_corrected_names = []
+
         with open(self.path + '/data.json', mode='r', encoding='utf-8') as f:
             json_all_maps = json.loads(f.read())
 
@@ -72,11 +84,14 @@ class ShopHelper:
                     good_path = self.path + '/' + json_map['map'] + '/' + str(json_good['index'])
                     good = cv2.imread(good_path + '.png')
 
-                    json_good['name'] = self.RecognizeText(good[0:20, 40:])
-                    print(json_good['name'])
-
-                    # json_good['price'] = self.RecognizeText(good[20:, 40:])
-                    # print(json_good['price'])
+                    # get corrected name
+                    origin_name = self.RecognizeText(good[0:20, 40:])
+                    if origin_name in text_correct:
+                        json_good['name'] = text_correct[origin_name]
+                    else:
+                        json_good['name'] = origin_name
+                        if origin_name not in not_corrected_names:
+                            not_corrected_names.append(origin_name)
 
                     cv2.imwrite(good_path + '.jpg', good, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
                     os.remove(good_path + '.png')
@@ -86,6 +101,11 @@ class ShopHelper:
         with open(self.path + '/data.json', mode='w', encoding='utf-8') as f:
             f.write(json_text)
 
+        with open('not_corrected.txt', mode='w', encoding='utf-8') as f:
+            f.write('\n'.join(not_corrected_names))
+        print("found " + str(len(not_corrected_names)) +" not corrected names. saved to not_corrected.txt")
+        for name in not_corrected_names:
+            print(name)
 
         print("Done")
         return
@@ -93,14 +113,14 @@ class ShopHelper:
 
 
 sh = ShopHelper()
-sh.path = '1645719060'
+sh.MoveFiles()
+
+time_start = time.perf_counter()
+sh.RecognizeAllShop()
+time_end = time.perf_counter()
+
+print("time",time_end-time_start)
+
+api.End()
+
 sh.MoveFilesAfterFinish()
-# sh.MoveFiles()
-
-# time_start = time.perf_counter()
-# sh.RecognizeAllShop()
-# time_end = time.perf_counter()
-
-# print("time",time_end-time_start)
-
-# api.End()

@@ -2,6 +2,7 @@ from key import SetFocus, PressKey, ReleaseKey
 import time
 import win32gui
 import capture
+import sys
 
 import win32gui
 
@@ -41,33 +42,32 @@ def DoMapFirstFloor(path):
         # jump left
         DoKey(keycode.left)
         time.sleep(0.1)
-        JumpFar()
-
-        # climb stairs
-        PressKey(keycode.right)
-        DoKey(keycode.alt)
-        time.sleep(0.75)
-        DoKey(keycode.alt)
-        time.sleep(1.0)
-        ReleaseKey(keycode.right)
-    
-        # jump to bring camera up
-        time.sleep(0.2)
-        DoKey(keycode.alt)
-        time.sleep(0.5)
+        JumpFar(0.5)
+        JumpFar(0.2)
+        PressKey(keycode.up)
+        time.sleep(1.5)
+        ReleaseKey(keycode.up)
+        time.sleep(2)
 
     # capture
     sh.Start(path)
     time.sleep(0.1)
     
     if shopCount > 5:
+        PressKey(keycode.right)
+        time.sleep(0.1)
+        JumpFar()
+        time.sleep(0.4)
+        ReleaseKey(keycode.right)
+
         # jump down
         PressKey(keycode.down)
         time.sleep(0.1)
         DoKey(keycode.alt)
         time.sleep(0.1)
         ReleaseKey(keycode.down)
-        time.sleep(1)
+        time.sleep(0.5)
+        # DoKey(keycode.right, 0.8)
     
     # exit map
     DoKey(keycode.up)
@@ -207,22 +207,17 @@ def SecondToThird():
     DoKey(keycode.right, 0.7)
 
 
-def KeyPress():
+def KeyPress(channel):
     SetFocus(hwnd)
 
-    # FirstFloor(channel=1)
-    # FirstToSecond()
-    # SecondFloor(channel=1)
-    # SecondToThird()
-    # ThirdFloor(channel=1)
-
-    # FirstFloor(channel=2)
-
-    # FirstFloor(channel=3)
-
-    # FirstFloor(channel=4)
-
-    FirstFloor(channel=6)
+    if channel == 1:
+        FirstFloor(channel)
+        FirstToSecond()
+        SecondFloor(channel)
+        SecondToThird()
+        ThirdFloor(channel)
+    else:
+        FirstFloor(channel)
 
 
-KeyPress()
+KeyPress(sys.argv[1])
