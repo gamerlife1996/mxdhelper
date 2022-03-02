@@ -73,19 +73,6 @@ def DoMapFirstFloor(path):
     DoKey(keycode.up)
     time.sleep(3)
 
-def FirstFloor(channel):
-    DoMapFirstFloor(str(channel) + '-1')
-    DoKey(keycode.right, 1)
-    DoMapFirstFloor(str(channel) + '-2')
-    DoKey(keycode.right, 1)
-    DoMapFirstFloor(str(channel) + '-3')
-    DoKey(keycode.right, 1.4)
-    DoMapFirstFloor(str(channel) + '-4')
-    DoKey(keycode.right, 1.2)
-    DoMapFirstFloor(str(channel) + '-5')
-    DoKey(keycode.right, 1.2)
-    DoMapFirstFloor(str(channel) + '-6')
-
 def DoMapSecondFloor(path):
     # enter map
     DoKey(keycode.up)
@@ -115,17 +102,6 @@ def DoMapSecondFloor(path):
     # exit map
     DoKey(keycode.up)
     time.sleep(3)
-
-def SecondFloor(channel):
-    DoMapSecondFloor(str(channel) + '-13')
-    DoKey(keycode.right, 1.1)
-    DoMapSecondFloor(str(channel) + '-14')
-    DoKey(keycode.right, 1.1)
-    DoMapSecondFloor(str(channel) + '-15')
-    DoKey(keycode.right, 1.2)
-    DoMapSecondFloor(str(channel) + '-16')
-    DoKey(keycode.right, 1.1)
-    DoMapSecondFloor(str(channel) + '-17')
 
 def DoMapThirdFloor(path):
     # enter map
@@ -166,6 +142,30 @@ def DoMapThirdFloor(path):
     # exit map
     DoKey(keycode.up)
     time.sleep(3)
+
+def FirstFloor(channel):
+    DoMapFirstFloor(str(channel) + '-1')
+    DoKey(keycode.right, 1)
+    DoMapFirstFloor(str(channel) + '-2')
+    DoKey(keycode.right, 1)
+    DoMapFirstFloor(str(channel) + '-3')
+    DoKey(keycode.right, 1.4)
+    DoMapFirstFloor(str(channel) + '-4')
+    DoKey(keycode.right, 1.2)
+    DoMapFirstFloor(str(channel) + '-5')
+    DoKey(keycode.right, 1.2)
+    DoMapFirstFloor(str(channel) + '-6')
+
+def SecondFloor(channel):
+    DoMapSecondFloor(str(channel) + '-13')
+    DoKey(keycode.right, 1.1)
+    DoMapSecondFloor(str(channel) + '-14')
+    DoKey(keycode.right, 1.1)
+    DoMapSecondFloor(str(channel) + '-15')
+    DoKey(keycode.right, 1.2)
+    DoMapSecondFloor(str(channel) + '-16')
+    DoKey(keycode.right, 1.1)
+    DoMapSecondFloor(str(channel) + '-17')
 
 
 def ThirdFloor(channel):
