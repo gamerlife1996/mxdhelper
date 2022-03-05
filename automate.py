@@ -3,13 +3,21 @@ import time
 import win32gui
 import capture
 import sys
+import cv2
+import numpy
+import mss
 
 import win32gui
+import win32api
 
 window_handle = win32gui.FindWindow("MapleStoryClass", None)
 window_rect   = win32gui.GetWindowRect(window_handle)
 
+sct = mss.mss()
+
 hwnd = win32gui.FindWindow("MapleStoryClass", None)
+
+hero_img = cv2.imread('source/hero.png')
 
 sh = capture.ShopHelper()
 
@@ -35,7 +43,7 @@ def JumpFar(wait=0.6):
 def DoMapFirstFloor(path):
     # enter map
     DoKey(keycode.up)
-    time.sleep(2)
+    time.sleep(3)
 
     shopCount = sh.GetFairyShopCount()
     if shopCount > 5:
@@ -71,12 +79,13 @@ def DoMapFirstFloor(path):
     
     # exit map
     DoKey(keycode.up)
-    time.sleep(3)
+    time.sleep(4)
+
 
 def DoMapSecondFloor(path):
     # enter map
     DoKey(keycode.up)
-    time.sleep(2)
+    time.sleep(3)
 
     shopCount = sh.GetFairyShopCount()
     if shopCount > 5:
@@ -101,12 +110,13 @@ def DoMapSecondFloor(path):
 
     # exit map
     DoKey(keycode.up)
-    time.sleep(3)
+    time.sleep(4)
+
 
 def DoMapThirdFloor(path):
     # enter map
     DoKey(keycode.up)
-    time.sleep(2)
+    time.sleep(3)
 
     shopCount = sh.GetFairyShopCount()
     if shopCount > 5:
@@ -141,70 +151,7 @@ def DoMapThirdFloor(path):
 
     # exit map
     DoKey(keycode.up)
-    time.sleep(3)
-
-def FirstFloor(channel):
-    DoMapFirstFloor(str(channel) + '-1')
-    DoKey(keycode.right, 1)
-    DoMapFirstFloor(str(channel) + '-2')
-    DoKey(keycode.right, 1)
-    DoMapFirstFloor(str(channel) + '-3')
-    DoKey(keycode.right, 1.4)
-    DoMapFirstFloor(str(channel) + '-4')
-    DoKey(keycode.right, 1.2)
-    DoMapFirstFloor(str(channel) + '-5')
-    DoKey(keycode.right, 1.2)
-    DoMapFirstFloor(str(channel) + '-6')
-
-def SecondFloor(channel):
-    DoMapSecondFloor(str(channel) + '-13')
-    DoKey(keycode.right, 1.1)
-    DoMapSecondFloor(str(channel) + '-14')
-    DoKey(keycode.right, 1.1)
-    DoMapSecondFloor(str(channel) + '-15')
-    DoKey(keycode.right, 1.2)
-    DoMapSecondFloor(str(channel) + '-16')
-    DoKey(keycode.right, 1.1)
-    DoMapSecondFloor(str(channel) + '-17')
-
-
-def ThirdFloor(channel):
-    DoMapThirdFloor(str(channel) + '-18')
-    DoKey(keycode.right, 1)
-    DoMapThirdFloor(str(channel) + '-19')
-    DoKey(keycode.right, 1)
-    DoMapThirdFloor(str(channel) + '-20')
-    DoKey(keycode.right, 1)
-    DoMapThirdFloor(str(channel) + '-21')
-    DoKey(keycode.right, 1)
-    DoMapThirdFloor(str(channel) + '-22')
-
-
-def FirstToSecond():
-    DoKey(keycode.left)
-    time.sleep(0.1)
-    JumpFar()
-    JumpFar()
-    JumpFar()
-    DoKey(keycode.left, 0.1)
-
-    DoKey(keycode.up)
-    time.sleep(0.8)
-    DoKey(keycode.up)
-    time.sleep(0.3)
-    DoKey(keycode.right, 0.7)
-
-
-def SecondToThird():
-    DoKey(keycode.left)
-    time.sleep(0.1)
-    JumpFar()
-    JumpFar()
-    DoKey(keycode.left, 1.1)
-
-    DoKey(keycode.up)
-    time.sleep(0.3)
-    DoKey(keycode.right, 0.7)
+    time.sleep(4)
 
 
 def KeyPress(channel):
@@ -220,4 +167,78 @@ def KeyPress(channel):
         FirstFloor(channel)
 
 
-KeyPress(sys.argv[1])
+class Automator:
+
+    def WalkTo(self, targetX):
+        xdiff = self.hero_x - targetX
+        # print(self.hero_x, targetX, xdiff)
+        if xdiff == 0:
+            # success only if two consective good
+            if self.goodCount == 10:
+                return True
+            else:
+                self.goodCount = self.goodCount + 1
+        else:
+            self.goodCount = 0
+            if xdiff < -70:
+                ReleaseKey(keycode.left)
+                PressKey(keycode.right)
+            elif xdiff > 70:
+                ReleaseKey(keycode.right)
+                PressKey(keycode.left)
+            else:
+                ReleaseKey(keycode.left)
+                ReleaseKey(keycode.right)
+                if xdiff < 0:
+                    DoKey(keycode.right, 0.1)
+                elif xdiff > 0:
+                    DoKey(keycode.left, 0.1)
+
+    def Walk(self, target):
+        rect = {"left":window_rect[0]+5, "top":window_rect[1]+95, "width":200, "height":100}
+        while True:
+            scr = numpy.array(sct.grab(rect))
+            scr = scr[:,:,:3]
+
+            result = cv2.matchTemplate(scr, hero_img, cv2.TM_CCOEFF_NORMED)
+            _, max_val, _, max_loc = cv2.minMaxLoc(result)
+            self.hero_x = max_loc[0]
+
+            if self.WalkTo(target):
+                print("arrive")
+                break
+
+    def Test(self, channel):
+        
+        SetFocus(hwnd)
+
+        firstFloor = { 1:116, 2:125, 3:135, 4:147, 5:158, 6:168, "height":64, "up":109 }
+        secondFloor = { 13:122, 14:132, 15:142, 16:153, 17:163, "height":30, "up":115 }
+        thirdFloor = { 18:124, 19:133, 20:142, 21:152, 22:161, "height":13 }
+
+        for i in range(1,7):
+            self.Walk(firstFloor[i])
+            DoMapFirstFloor(str(channel)+'-'+str(i))
+
+        
+        if str(channel) == "1":
+            self.Walk(firstFloor['up'])
+            DoKey(keycode.up)
+            time.sleep(1)
+            DoKey(keycode.up)
+
+            for i in range(13,18):
+                self.Walk(secondFloor[i])
+                DoMapSecondFloor(str(channel)+'-'+str(i))
+
+            self.Walk(secondFloor['up'])
+            DoKey(keycode.up)
+
+            for i in range(18,23):
+                self.Walk(thirdFloor[i])
+                DoMapThirdFloor(str(channel)+'-'+str(i))
+            
+        
+
+auto = Automator()
+auto.Test(sys.argv[1])
