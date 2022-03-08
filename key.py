@@ -1,4 +1,5 @@
 import ctypes
+import time
 # Bunch of stuff so that the script can send keystrokes to game #
 
 SendInput = ctypes.windll.user32.SendInput
@@ -54,3 +55,25 @@ def SetFocus(hwnd):
     ctypes.windll.user32.BringWindowToTop(hwnd)
     ctypes.windll.user32.SetForegroundWindow(hwnd)
     ctypes.windll.user32.SetFocus(hwnd)
+
+class keycode:
+    esc = 0x01
+    enter = 0x1C
+    c = 0x2E
+    alt = 0x38
+    up = 0x48
+    left = 0x4B
+    right = 0x4D
+    down = 0x50
+
+def DoKey(code, t=0.05):
+    PressKey(code)
+    time.sleep(t)
+    ReleaseKey(code)
+    
+
+def JumpFar(wait=0.6):
+    DoKey(keycode.alt,0.01)
+    time.sleep(0.02)
+    DoKey(keycode.c,0.01)
+    time.sleep(wait) # wait til landing

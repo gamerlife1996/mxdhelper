@@ -7,6 +7,7 @@ import json
 import sys
 import os
 import re
+import random
 
 import win32gui
 
@@ -25,6 +26,7 @@ slider_top_img = cv2.imread('source/top.png')
 slider_bottom_img = cv2.imread('source/bottom.png')
 
 organizing_img = cv2.imread('source/organizing.png')
+sort_img = cv2.imread('source/sort.png')
 
 self_shop_img = cv2.imread('source/self.png')
 
@@ -35,6 +37,11 @@ goods_width = 160
 
 class ShopHelper:
     
+    
+    def Grab(self, rect=window_rect):
+        return numpy.array(sct.grab(rect))
+
+
     def GrabScreen(self, rect = window_rect):
         self.scr = numpy.array(sct.grab(rect))
         self.scr = self.scr[:,:,:3]
@@ -74,6 +81,7 @@ class ShopHelper:
 
         cv2.imwrite(self.path + '/' + str(self.index)+"_detail.jpg", detail_scr, [int(cv2.IMWRITE_JPEG_QUALITY), 75])
         return w,h
+
 
     def SaveGoods(self, good_list, start=0):
         for index in range(0, 5-start):
@@ -132,6 +140,7 @@ class ShopHelper:
         pyautogui.moveTo(x, y)
         pyautogui.doubleClick()
 
+        start_time = time.time()
         # wait for shop to open
         while True:
             self.GrabScreen()
@@ -143,6 +152,16 @@ class ShopHelper:
             if self.IsMatch(organizing_img):
                 pyautogui.click(window_rect[0]+787, window_rect[1]+450)
                 return
+            if self.IsMatch(organizing_img):
+                pyautogui.click(window_rect[0]+780, window_rect[1]+460)
+                return
+            if time.time() - start_time > 1:
+                print("waited too long, reclick shop")
+                x_offset = random.randrange(-20, 20)
+                y_offset = random.randrange(-20, 20)
+                pyautogui.moveTo(x + x_offset, y + y_offset)
+                pyautogui.doubleClick()
+                break
 
         pyautogui.click(window_rect[0]+100, window_rect[1]+100)
 
