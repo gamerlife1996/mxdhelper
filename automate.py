@@ -32,7 +32,7 @@ thirdFloor = { 18:124, 19:133, 20:142, 21:152, 22:161, "height":13 }
 
 class Automator:
 
-    def WaitForResponse(self):
+    def WaitForResponse(self, threshold=10):
         scr = sh.Grab()
         hasLoad = False
         activeFrameCount = 0
@@ -41,11 +41,9 @@ class Automator:
 
             gray = cv2.cvtColor(new_scr, cv2.COLOR_BGR2GRAY)
             mean = cv2.mean(gray)[0]
-            print(mean)
 
             if mean < 80:
                 if not hasLoad:
-                    print("start loading")
                     hasLoad = True
             else:
                 if hasLoad:
@@ -55,13 +53,13 @@ class Automator:
                     if not isFreeze:
                         activeFrameCount += 1
                     else:
-                        print("freeze")
                         # freeze, reset count
                         activeFrameCount = 0
 
-            if activeFrameCount > 10:
+            if activeFrameCount > threshold:
                 break
 
+        time.sleep(0.1) # small buffer time
         print("finish loading")
 
 
@@ -135,7 +133,7 @@ class Automator:
     def DoMapThirdFloor(self, path):
         # enter map
         key.DoKey(keycode.up)
-        self.WaitForResponse()
+        self.WaitForResponse(5) # small threshold for third floor (background does not move)
 
         shopCount = sh.GetFairyShopCount()
         if shopCount > 5:
@@ -143,9 +141,9 @@ class Automator:
             key.JumpFar()
             key.JumpFar()
             key.JumpFar()
-            key.JumpFar(0.2)
+            key.JumpFar(0.1)
             key.PressKey(keycode.up)
-            time.sleep(1.8)
+            time.sleep(1.9)
             key.ReleaseKey(keycode.up)
             time.sleep(2)
 
@@ -226,14 +224,6 @@ class Automator:
         key.DoKey(keycode.enter)
 
 
-    def Test(self):
-        key.SetFocus(hwnd)
-        channel = 1
-        for i in range(18,23):
-            self.Walk(thirdFloor[i])
-            self.DoMapThirdFloor(str(channel)+'-'+str(i))
-
-
     def DoChannel(self, channel):
         key.SetFocus(hwnd)
 
@@ -270,10 +260,7 @@ class Automator:
         self.WaitForResponse()
         self.DoChannel(6)
 
-
-if len(sys.argv) > 1:
-    channel = sys.argv[1]
+print("start full capture")
 
 auto = Automator()
-auto.Test()
-# auto.FullCapture()
+auto.FullCapture()

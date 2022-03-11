@@ -54,6 +54,7 @@ class ShopHelper:
     def CaptureItemDetail(self, item_top):
         mouse_pos = (window_rect[0]+goods_left-35, window_rect[1]+item_top+6)
         pyautogui.moveTo(mouse_pos[0], mouse_pos[1], 0.1)
+        time.sleep(0.01)
         detail_scr = numpy.array(sct.grab({"top": window_rect[1]+goods_top, "left": mouse_pos[0], "width": 300, "height": 500}))
         detail_scr = detail_scr[:,:,:3]
         
@@ -161,7 +162,6 @@ class ShopHelper:
                 y_offset = random.randrange(-20, 20)
                 pyautogui.moveTo(x + x_offset, y + y_offset)
                 pyautogui.doubleClick()
-                break
 
         pyautogui.click(window_rect[0]+100, window_rect[1]+100)
 

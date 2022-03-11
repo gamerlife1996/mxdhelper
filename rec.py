@@ -6,8 +6,16 @@ import os
 from tesserocr import PyTessBaseAPI, RIL, iterate_level, PSM
 from PIL import Image
 import shutil
+import numpy
 
 api = PyTessBaseAPI(lang='chi_sim', psm=PSM.SINGLE_LINE)
+
+prefix = cv2.imread('source/prefix.png', 0)
+suffix = cv2.imread('source/suffix.png', 0)
+comma = cv2.imread('source/comma.png', 0)
+number_img = []
+for i in range(0, 10):
+    number_img.append(cv2.imread('source/'+str(i)+'.png', 0))
 
 class ShopHelper:
 
@@ -45,6 +53,36 @@ class ShopHelper:
         # starts building
         os.chdir('E:\gamerlife1996.github.io\\')
         os.system('build.bat')
+
+    def RecognizePrice(self, good):
+        crop = good[20:38, 40:]
+        gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+        thres = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)[1]
+
+        result = cv2.matchTemplate(thres, prefix, cv2.TM_CCOEFF_NORMED)
+        _, prefix_val, _, prefix_loc = cv2.minMaxLoc(result)
+
+        result = cv2.matchTemplate(thres, suffix, cv2.TM_CCOEFF_NORMED)
+        _, suffix_val, _, suffix_loc = cv2.minMaxLoc(result)
+
+        if prefix_val > 0.9:
+            start = prefix_loc[0]+len(prefix[0])+2
+            number = thres[suffix_loc[1]+2:suffix_loc[1]+11, start:suffix_loc[0]]
+        else:
+            number = thres[suffix_loc[1]+2:suffix_loc[1]+11, 4:suffix_loc[0]]
+
+        price = ''
+        number_count = len(number[0]) // 6
+        for i in range(0, number_count):
+            single_num = number[:, i*6:i*6+5]
+            if numpy.array_equiv(single_num, comma):
+                price += ','
+            else:
+                for j in range(0, 10):
+                    if numpy.array_equiv(single_num, number_img[j]):
+                        price += str(j)
+
+        return price
     
 
     def RecognizeText(self, crop):
@@ -92,6 +130,8 @@ class ShopHelper:
                         json_good['name'] = origin_name
                         if origin_name not in not_corrected_names:
                             not_corrected_names.append(origin_name)
+                    
+                    json_good['price'] = self.RecognizePrice(good)
 
                     cv2.imwrite(good_path + '.jpg', good, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
                     os.remove(good_path + '.png')
@@ -101,11 +141,10 @@ class ShopHelper:
         with open(self.path + '/data.json', mode='w', encoding='utf-8') as f:
             f.write(json_text)
 
-        with open('not_corrected.txt', mode='w', encoding='utf-8') as f:
-            f.write('\n'.join(not_corrected_names))
-        print("found " + str(len(not_corrected_names)) +" not corrected names. saved to not_corrected.txt")
-        for name in not_corrected_names:
-            print(name)
+        if len(not_corrected_names) > 0:
+            with open('not_corrected.txt', mode='w', encoding='utf-8') as f:
+                f.write('\n'.join(not_corrected_names))
+            print("found " + str(len(not_corrected_names)) +" not corrected names. saved to not_corrected.txt")
 
         print("Done")
         return
