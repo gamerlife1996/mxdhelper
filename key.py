@@ -71,6 +71,19 @@ def DoKey(code, t=0.05):
     time.sleep(t)
     ReleaseKey(code)
     
+def JumpLeft(walkTime = 0.1):
+    PressKey(keycode.left)
+    time.sleep(walkTime)
+    DoKey(keycode.alt)
+    time.sleep(0.1)
+    ReleaseKey(keycode.left)
+
+def JumpRight(walkTime = 0.1):
+    PressKey(keycode.right)
+    time.sleep(walkTime)
+    DoKey(keycode.alt)
+    time.sleep(0.1)
+    ReleaseKey(keycode.right)
 
 def JumpFar(wait=0.6):
     DoKey(keycode.alt,0.01)

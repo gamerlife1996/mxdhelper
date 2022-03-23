@@ -13,10 +13,17 @@ goto :eof
 :payload
 
 ::ENTER YOUR CODE BELOW::   
+
 e:
 cd mxd
+
 python automate.py
 python rec.py
+python price.py
+
+e:
+cd "E:\gamerlife1996.github.io\"
+call .\build.bat
 
 echo finish
 

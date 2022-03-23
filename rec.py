@@ -33,27 +33,6 @@ class ShopHelper:
         self.path = dest
 
 
-    def MoveFilesAfterFinish(self):
-        # delete old data
-        dirs = os.listdir('E:\gamerlife1996.github.io\public')
-        for dir in dirs:
-            dirpath = 'E:\gamerlife1996.github.io\public\\' + dir
-            if os.path.isdir(dirpath):
-                shutil.rmtree(dirpath)
-
-        # copy new data
-        shutil.copytree(self.path, 'E:\gamerlife1996.github.io\public\\'+self.path)
-
-        # move data to old_data folder
-        shutil.move(self.path, 'old_data')
-
-        # move json file
-        shutil.move('E:\gamerlife1996.github.io\public\\'+self.path+'\data.json', 'E:\gamerlife1996.github.io\src\\views\data.json')
-
-        # starts building
-        os.chdir('E:\gamerlife1996.github.io\\')
-        os.system('build.bat')
-
     def RecognizePrice(self, good):
         crop = good[20:38, 40:]
         gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
@@ -149,6 +128,23 @@ class ShopHelper:
         print("Done")
         return
 
+
+    def MoveFilesAfterFinish(self):
+        # delete old data
+        dirs = os.listdir('E:\gamerlife1996.github.io\public')
+        for dir in dirs:
+            dirpath = 'E:\gamerlife1996.github.io\public\\' + dir
+            if os.path.isdir(dirpath):
+                shutil.rmtree(dirpath)
+
+        # copy new data
+        shutil.copytree(self.path, 'E:\gamerlife1996.github.io\public\\'+self.path)
+
+        # move data to old_data folder
+        shutil.move(self.path, 'old_data')
+
+        # move json file
+        shutil.move('E:\gamerlife1996.github.io\public\\'+self.path+'\data.json', 'E:\gamerlife1996.github.io\src\\views\data.json')
 
 
 sh = ShopHelper()

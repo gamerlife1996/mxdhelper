@@ -31,6 +31,9 @@ for folder in os.listdir('old_data'):
                     if len(good['price']) == 0: # skip invalid price
                         continue
 
+                    # if not good['available']: # skip unavail good
+                    #     continue
+
                     price = int(good['price'].replace(',',''))
 
                     if name not in all_names:

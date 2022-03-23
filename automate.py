@@ -23,8 +23,7 @@ hero_img = cv2.imread('source/hero.png')
 sh = capture.ShopHelper()
 
 
-rect_firstFloor = {"left":window_rect[0]+24, "top":window_rect[1]+98, "width":88, "height":64}
-rect_entry = {"left":window_rect[0]+5, "top":window_rect[1]+95, "width":200, "height":100}
+rect = {"left":window_rect[0]+5, "top":window_rect[1]+95, "width":200, "height":100}
 
 firstFloor = { 1:116, 2:125, 3:135, 4:147, 5:158, 6:168, "height":64, "up":109 }
 secondFloor = { 13:122, 14:132, 15:142, 16:153, 17:163, "height":30, "up":115 }
@@ -59,7 +58,7 @@ class Automator:
             if activeFrameCount > threshold:
                 break
 
-        time.sleep(0.1) # small buffer time
+        time.sleep(0.5) # buffer time
         print("finish loading")
 
 
@@ -70,29 +69,19 @@ class Automator:
         
         shopCount = sh.GetFairyShopCount()
         if shopCount > 5:
-            # jump left
-            key.DoKey(keycode.left)
-            time.sleep(0.1)
-            key.JumpFar(0.5)
-            key.JumpFar(0.2)
-            key.PressKey(keycode.up)
-            time.sleep(1.5)
-            key.ReleaseKey(keycode.up)
-            time.sleep(2)
+            self.Walk(68)
+            key.JumpLeft()
+            key.DoKey(keycode.up, 2)
+            time.sleep(2) # wait for camera to catch up
 
         # capture
         sh.Start(path)
         time.sleep(0.1)
         
         if shopCount > 5:
-            key.DoKey(keycode.down, 0.5)
-            key.PressKey(keycode.right)
-            time.sleep(0.1)
-            key.DoKey(keycode.alt)
-            time.sleep(0.1)
-            key.ReleaseKey(keycode.right)
-            time.sleep(0.2)
-            self.Walk(72, rect_firstFloor)
+            self.Walk(68)
+            key.DoKey(keycode.up)
+            self.Walk(91)
         
         # exit map
         key.DoKey(keycode.up)
@@ -111,19 +100,15 @@ class Automator:
             key.PressKey(keycode.up)
             time.sleep(1.5)
             key.ReleaseKey(keycode.up)
-            time.sleep(2)
+            time.sleep(2) # wait for camera to catch up
 
         # capture
         sh.Start(path)
         time.sleep(0.1)
 
         if shopCount > 5:
-            # jump left
-            key.PressKey(keycode.left)
-            time.sleep(0.1)
-            key.DoKey(keycode.alt)
-            time.sleep(1.3)
-            key.ReleaseKey(keycode.left)
+            key.JumpLeft()
+            self.Walk(62)
 
         # exit map
         key.DoKey(keycode.up)
@@ -137,28 +122,17 @@ class Automator:
 
         shopCount = sh.GetFairyShopCount()
         if shopCount > 5:
-            # jump right
-            key.JumpFar()
-            key.JumpFar()
-            key.JumpFar()
-            key.JumpFar(0.1)
-            key.PressKey(keycode.up)
-            time.sleep(1.9)
-            key.ReleaseKey(keycode.up)
-            time.sleep(2)
+            self.Walk(90)
+            key.DoKey(keycode.alt)
+            key.DoKey(keycode.up, 2)
+            time.sleep(2) # wait for camera to catch up
 
         # capture
         sh.Start(path)
         time.sleep(0.1)
 
         if shopCount > 5:
-            # jump left
-            key.DoKey(keycode.left)
-            time.sleep(0.1)
-            key.JumpFar()
-            key.JumpFar()
-            key.JumpFar()
-            key.DoKey(keycode.left, 0.8)
+            self.Walk(24)
 
             time.sleep(1)
             sh.Click(30, 430)
@@ -197,7 +171,7 @@ class Automator:
                     key.DoKey(keycode.left, 0.1)
 
 
-    def Walk(self, target, rect=rect_entry):
+    def Walk(self, target):
         self.goodCount = 0
         while True:
             scr = sh.Grab(rect)
@@ -205,11 +179,21 @@ class Automator:
 
             result = cv2.matchTemplate(scr, hero_img, cv2.TM_CCOEFF_NORMED)
             _, max_val, _, max_loc = cv2.minMaxLoc(result)
+            # print(max_val, max_loc)
             self.hero_x = max_loc[0]
 
             if self.WalkTo(target):
                 print("arrive")
                 break
+
+    def PrintPos(self):
+        while True:
+            scr = sh.Grab(rect)
+            scr = scr[:,:,:3]
+
+            result = cv2.matchTemplate(scr, hero_img, cv2.TM_CCOEFF_NORMED)
+            _, max_val, _, max_loc = cv2.minMaxLoc(result)
+            print(max_val, max_loc)
 
 
     def NextChannel(self, num=1):
@@ -227,11 +211,11 @@ class Automator:
     def DoChannel(self, channel):
         key.SetFocus(hwnd)
 
-        for i in range(1,7):
-            self.Walk(firstFloor[i])
-            self.DoMapFirstFloor(str(channel)+'-'+str(i))
-
         if str(channel) == "1":
+            for i in range(1,7):
+                self.Walk(firstFloor[i])
+                self.DoMapFirstFloor(str(channel)+'-'+str(i))
+
             self.Walk(firstFloor['up'])
             key.DoKey(keycode.up)
             time.sleep(1)
@@ -247,9 +231,14 @@ class Automator:
             for i in range(18,23):
                 self.Walk(thirdFloor[i])
                 self.DoMapThirdFloor(str(channel)+'-'+str(i))
+        else:
+            for i in range(1,7):
+                self.Walk(firstFloor[i])
+                self.DoMapFirstFloor(str(channel)+'-'+str(i))
 
 
     def FullCapture(self):
+        print("start full capture")
         for i in range(1, 4):
             self.DoChannel(i)
             self.NextChannel()
@@ -258,9 +247,28 @@ class Automator:
         self.DoChannel(4)
         self.NextChannel(2)
         self.WaitForResponse()
+        self.Walk(99)
         self.DoChannel(6)
 
-print("start full capture")
+
+    def Test(self):
+        key.SetFocus(hwnd)
+        # self.DoMapSecondFloor("1-1")
+        # self.PrintPos()
+
+        self.NextChannel()
+        self.WaitForResponse()
+        self.Walk(99)
+        # key.JumpLeft()
+        # key.DoKey(keycode.up, 2)
+        # key.PressKey(keycode.left)
+        # time.sleep(0.1)
+        # key.DoKey(keycode.alt)
+        # key.PressKey(keycode.up)
+        # key.ReleaseKey(keycode.left)
+        # time.sleep(0.5)
+        # key.ReleaseKey(keycode.up)
 
 auto = Automator()
 auto.FullCapture()
+# auto.Test()
